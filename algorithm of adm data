@@ -1,0 +1,51 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Load and preprocess the data
+df = pd.read_csv(r'C:/Users/S KUMARASWAMI/Downloads/admission_data.csv')
+df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
+df.dropna(inplace=True)
+
+# Feature-target split
+X = df.drop('chance_of_admit', axis=1)
+y = df['chance_of_admit']
+
+# Scale features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# Train Linear Regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+# Evaluate with R² and MSE
+r2 = r2_score(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+
+# Custom accuracy: within ±0.05 tolerance
+tolerance = 0.05
+accuracy = np.mean(np.abs(y_test - y_pred) <= tolerance)
+
+print(f"📊 R² Score: {r2:.4f}")
+print(f"📉 Mean Squared Error: {mse:.4f}")
+print(f"✅ Custom Accuracy (±{tolerance}): {accuracy*100:.2f}%")
+
+# Plot Actual vs Predicted
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_pred, alpha=0.6, color='teal', edgecolors='k')
+plt.plot([0, 1], [0, 1], 'r--')  # reference line
+plt.xlabel("Actual Chance of Admit")
+plt.ylabel("Predicted Chance of Admit")
+plt.title("Linear Regression: Actual vs Predicted")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
